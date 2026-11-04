@@ -44,7 +44,7 @@ import net.minecraft.client.model.Model;
 				if (armorModel == null) {
 					armorModel = new HumanoidModel<>(new ModelPart(Collections.emptyList(), Map.of(
 						"head", new ModelPart(Collections.emptyList(), Map.of(
-							"head", new ${data.helmetModelName}(Minecraft.getInstance().getEntityModels().bakeLayer(${data.helmetModelName}.LAYER_LOCATION)).${data.helmetModelPart},
+							"head", ${JavaModName}ArmorModels.prepareCustomHeadPart(new ${data.helmetModelName}(Minecraft.getInstance().getEntityModels().bakeLayer(${data.helmetModelName}.LAYER_LOCATION)).${data.helmetModelPart}),
 							"hat", new ModelPart(Collections.emptyList(), Collections.emptyMap())
 						)),
 						"body", new ModelPart(Collections.emptyList(), Collections.emptyMap()),

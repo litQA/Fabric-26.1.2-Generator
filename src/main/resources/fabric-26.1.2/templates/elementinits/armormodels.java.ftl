@@ -69,6 +69,17 @@ package ${package}.init;
         }
     }
 
+    /**
+     * Removes the root translation of a custom Java head model part before it
+     * is nested under the humanoid head. Blockbench entity/block models often
+     * store a Y offset such as 23 or 24 that is not valid in head space.
+     */
+    public static ModelPart prepareCustomHeadPart(ModelPart part) {
+        PartPose initial = part.getInitialPose();
+        part.loadPose(initial.translated(-initial.x(), -initial.y(), -initial.z()));
+        return part;
+    }
+
     public static void clientLoad() {
         <#list armors as armor>
             ${armor.getModElement().getName()}Armor.clientLoad();

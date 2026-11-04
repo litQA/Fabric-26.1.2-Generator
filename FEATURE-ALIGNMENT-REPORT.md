@@ -58,6 +58,7 @@ These items are outside `new_features.txt` but were required by real 100-500 ele
 | Empty `block_inv_*` expressions | Added all 13 block inventory templates using vanilla `Container` helpers | Implemented; regeneration pending |
 | Empty `entity_nbt_*` expressions | Added eight entity NBT templates and the `${JavaModName}EntityNbt` persistent attachment helper | Implemented; regeneration pending |
 | Armor inventory icon missing texture | Corrected the armor model `suffix` variable from `sufix` | Implemented; regeneration pending |
+| Custom Java armor model texture and skeleton abnormal | Applied `ArmorModel.getArmorTexture` in the equipment mixin and normalized the helmet root translation with `prepareCustomHeadPart` | Implemented; in-game visual check pending |
 
 The block inventory family covers slot count, slot stack limit, slot item, slot amount, insert, extract, set, clear and remove operations. The entity NBT family uses a persistent Fabric attachment and does not emit NeoForge `getPersistentData()`.
 

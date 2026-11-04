@@ -42,6 +42,12 @@ tasks.build {
     dependsOn tasks.named('buildPlugin')
 }
 
+tasks.register('packagePlugin') {
+    group = 'mcreator_plugins'
+    description = 'Alias for buildPlugin that produces the installable MCreator plugin archive.'
+    dependsOn tasks.named('buildPlugin')
+}
+
 tasks.register('exportPlugin', Copy) {
     group = 'mcreator_plugins'
     dependsOn tasks.named('jar')

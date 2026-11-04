@@ -219,6 +219,20 @@ $generatorYamlText = Get-Content -LiteralPath (Join-Path $fabric "generator.yaml
 Check ($generatorYamlText -match 'elementinits/entitynbt\.java\.ftl') "generator.yaml registers the entity NBT helper"
 $sufixTypos = @(Get-Files $fabric "*.yaml" | Select-String -Pattern 'sufix=')
 Check ($sufixTypos.Count -eq 0) "armor model suffix variable uses the correct spelling"
+$armorModels = Get-Content -LiteralPath (Join-Path $fabric "templates\elementinits\armormodels.java.ftl") -Raw
+Check ($armorModels -match 'prepareCustomHeadPart') "custom armor head pose normalization is generated"
+$armorClient = Get-Content -LiteralPath (Join-Path $fabric "templates\armor\armor_client.java.ftl") -Raw
+Check ($armorClient -match 'prepareCustomHeadPart') "armor client applies the custom head pose normalization"
+$equipmentMixin = Get-Content -LiteralPath (Join-Path $fabric "templates\armor\equipment_layer_mixin.java.ftl") -Raw
+Check ($equipmentMixin -match 'getArmorTexture') "equipment layer mixin applies the custom armor model texture"
+
+$gradleProperties = Get-Content -LiteralPath (Join-Path $pluginRoot "gradle.properties") -Raw
+Check ($gradleProperties -match 'pluginVersion=2026\.3-1\.0\.2-beta') "plugin version is 2026.3-1.0.2-beta"
+$readme = Get-Content -LiteralPath (Join-Path $pluginRoot "README.md") -Raw
+Check ($readme -match 'https://github\.com/user-attachments/assets/b2ff8988-cd71-42c3-9b53-84d1e35ab98f') "README keeps the standard banner image link"
+Check ($readme -match '# MCreator - Minecraft Mod Maker') "README keeps the MCreator footer heading"
+Check ($readme.TrimEnd().EndsWith('NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.')) "README keeps the standard MCreator footer"
+Check (Test-Path (Join-Path $pluginRoot "tools\check-archive.ps1")) "archive check script exists"
 
 $workspaceBuild = Get-Content -LiteralPath (Join-Path $fabric "workspacebase\build.gradle") -Raw
 Check ($workspaceBuild -match 'fabric-loader:0\.20\.1') "workspacebase uses Fabric Loader 0.20.1"

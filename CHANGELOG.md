@@ -1,3 +1,60 @@
+# Changelog
+
+All notable changes to the Fabric 26.1.2 generator are recorded in this file.
+
+## 2026.3-1.0.2-beta
+
+### New Content
+
+- Plugin-level `README.md` with the standard banner, build, install, validation and layout sections.
+- A `packagePlugin` Gradle alias and a reproducible `tools/package.ps1` fallback.
+- Custom Java armor head models normalize the Blockbench root translation through `prepareCustomHeadPart`.
+- The equipment layer mixin now applies `ArmorModel.getArmorTexture`, so custom armor model textures are used instead of the equipment layer texture.
+
+### Changes
+
+- Version raised to `1.0.2-beta`.
+- Custom armor model documentation added to the migration and feature reports.
+
+### Fixes
+
+Fixed 2 bug(s).
+
+- Custom armor models no longer use the equipment layer texture for their model UVs.
+- Custom armor helmet models no longer inherit the Blockbench entity/block Y offset in head space.
+
+### Known Limitations
+
+- `prepareCustomHeadPart` only normalizes translation; authored rotation and scale remain unchanged.
+- Custom armor model appearance must be verified in a real client session.
+
+## 2026.3-1.0.1-beta
+
+### New Content
+
+- `player_useitem_finish` trigger backed by `ENTITY_FINISH_USING_ITEM` and a `completeUsingItem` mixin.
+- All 13 `block_inv_*` procedure blocks backed by vanilla `Container` access.
+- Eight `entity_nbt_*` procedure blocks backed by a generated persistent Fabric attachment helper.
+
+### Changes
+
+- Armor item model generation uses the correct `suffix` variable for all four armor pieces.
+- Workspace-driven compatibility fixes are recorded in the migration report.
+
+### Fixes
+
+Fixed 3 bug(s).
+
+- The finish-use trigger no longer leaves a missing procedure class.
+- Block inventory and entity NBT procedure blocks no longer emit empty expressions and invalid Java.
+- Armor inventory icons resolve to the generated per-piece item models.
+
+### Known Limitations
+
+- Entity NBT is stored in a Fabric data attachment rather than NeoForge `Entity#getPersistentData()`.
+- Block inventory procedures require the target block entity to implement vanilla `Container`.
+- The finish-use trigger uses a `require = 0` mixin; a target method change would skip the event.
+
 ## 2026.3-1.0.0-beta
 
 ### New Content
@@ -16,9 +73,6 @@
 - New procedure blocks cover strong redstone emission, vector dot product, line of sight, invulnerable time, attack cooldown, forced player attack, entity movement, item repair, empty stacks, piglin currency and item damage-source checks.
 - New AI task `attack_with_procedure` adds a custom melee attack goal driven by a procedure.
 - The piglin-currency check uses the vanilla `PiglinAi.isBarterCurrency` helper through an access transformer fragment; the NeoForge-only item property remains excluded.
-- Fabric-compatible block inventory procedure blocks use vanilla `Container` access for slot queries, insertion, extraction, removal and item damage.
-- Entity NBT procedure blocks persist through a Fabric data attachment helper generated only when an `entity_nbt_*` block is used.
-- The `player_useitem_finish` trigger is driven by a `LivingEntity.completeUsingItem` mixin and the new `ENTITY_FINISH_USING_ITEM` event.
 
 ### Changes
 
@@ -30,13 +84,10 @@
 
 ### Fixes
 
-Fixed 5 bug(s).
+Fixed 2 bug(s).
 
 - Generator base layers no longer depend on externally installed `datapack-26.1.x` or `neoforge-26.1.2` plugin paths.
 - Item loading is driven by `types.base_items`, so block items, armor, tools and other item-providing elements are registered even when no standalone item element exists.
-- Armor inventory icons resolve to the generated per-piece item models after correcting the `suffix` model variable.
-- The finish-use trigger no longer leaves a missing procedure class in workspaces that use `player_useitem_finish`.
-- Block inventory and entity NBT procedure blocks no longer emit empty expressions and invalid Java.
 
 ### Known Limitations
 
@@ -46,5 +97,6 @@ Fixed 5 bug(s).
 - The `hideTitle` adaptation relies on an access transformer for `CreativeModeTab$Builder.showTitle`; it must be verified in a real client launch.
 - The piglin-currency procedure relies on an access transformer for the vanilla `PiglinAi.isBarterCurrency` helper; the `Item` element property `isPiglinCurrency` remains a NeoForge-only field and is excluded.
 - The `entity_invulnerabletime` templates use direct field access, matching the NeoForge 26.1.2 reference; a 26.1.2 accessor change would require a template adjustment.
-- Entity NBT is stored in a Fabric data attachment rather than NeoForge `Entity#getPersistentData()`; block inventory procedures require the target block entity to implement vanilla `Container`.
+- The `divided` level-based enchantment input is represented by the `level_based_value_fraction.json.ftl` template.
 - Full Gradle and in-game verification must be completed on the user machine; see `MIGRATION-REPORT.md`.
+- The plugin LICENSE is CC BY-NC 4.0 per the delivery specification, while copied upstream templates retain their GPL-3.0 headers. Legal review is required before redistribution.
