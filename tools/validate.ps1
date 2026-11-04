@@ -204,6 +204,21 @@ foreach ($name in $newProcedures) {
 }
 Check ($missingProcedures -eq 0) "all $($newProcedures.Count) new procedure templates exist"
 Check (Test-Path (Join-Path $fabric "aitasks\attack_with_procedure.java.ftl")) "custom attack AI task template exists"
+Check (Test-Path (Join-Path $fabric "triggers\player_useitem_finish.java.ftl")) "player_useitem_finish trigger template exists"
+$livingEntityEvents = Get-Content -LiteralPath (Join-Path $fabric "templates\event\livingentity_events.java.ftl") -Raw
+Check ($livingEntityEvents -match 'ENTITY_FINISH_USING_ITEM') "finish-use event is generated"
+$livingEntityMixin = Get-Content -LiteralPath (Join-Path $fabric "templates\mixin\livingentity_mixin.java.ftl") -Raw
+Check ($livingEntityMixin -match 'completeUsingItem') "completeUsingItem mixin is generated"
+
+$blockInventoryTemplates = @(Get-ChildItem -LiteralPath (Join-Path $fabric "procedures") -File -Filter 'block_inv_*.java.ftl')
+Check ($blockInventoryTemplates.Count -ge 13) "block inventory procedure templates exist ($($blockInventoryTemplates.Count))"
+$entityNbtTemplates = @(Get-ChildItem -LiteralPath (Join-Path $fabric "procedures") -File -Filter 'entity_nbt_*.java.ftl')
+Check ($entityNbtTemplates.Count -ge 8) "entity NBT procedure templates exist ($($entityNbtTemplates.Count))"
+Check (Test-Path (Join-Path $fabric "templates\elementinits\entitynbt.java.ftl")) "entity NBT attachment helper template exists"
+$generatorYamlText = Get-Content -LiteralPath (Join-Path $fabric "generator.yaml") -Raw
+Check ($generatorYamlText -match 'elementinits/entitynbt\.java\.ftl') "generator.yaml registers the entity NBT helper"
+$sufixTypos = @(Get-Files $fabric "*.yaml" | Select-String -Pattern 'sufix=')
+Check ($sufixTypos.Count -eq 0) "armor model suffix variable uses the correct spelling"
 
 $workspaceBuild = Get-Content -LiteralPath (Join-Path $fabric "workspacebase\build.gradle") -Raw
 Check ($workspaceBuild -match 'fabric-loader:0\.20\.1') "workspacebase uses Fabric Loader 0.20.1"

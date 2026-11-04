@@ -114,6 +114,20 @@ The full item-by-item matrix is in `FEATURE-ALIGNMENT-REPORT.md`.
 
 The two adapted items are the creative tab `hideTitle` option and the piglin-currency procedure block. Both use the generator fragments access-transformer path because Minecraft 26.1.2 and Fabric expose the required behavior only through non-public members. The only not-applicable item is the NeoForge global loot modifier feature. Fabric API 0.155.3 has no equivalent registry; `lootTableToModify` is excluded instead of generating NeoForge code.
 
+### 4.1 Workspace-driven compatibility fixes
+
+Four real workspaces with 100-500 elements each were used as acceptance fixtures. They exposed four compatibility gaps that were not visible in the `new_features.txt` matrix:
+
+| Fixture | Symptom | Root cause | Fix |
+|---|---|---|---|
+| `test-better-melon` | `HavingUsedEnchantedMelonSliceProcedure` was missing, leaving `QaBetterMelonModProcedures` uncompilable | The core 2026.3 trigger `player_useitem_finish` had no Fabric trigger template | Added `ENTITY_FINISH_USING_ITEM`, a `completeUsingItem` mixin injection and `triggers/player_useitem_finish.java.ftl` |
+| `test-croparium-full` | Empty expressions such as `||>=64`, `sn = ;`, `== CpLibModItems...` in generated procedures | NeoForge `block_inv_*` procedure blocks had no Fabric templates; the old Fabric generator only shipped a small subset | Added all 13 `block_inv_*` templates backed by vanilla `Container` helpers |
+| `test-croparium-full` | Empty numeric expressions from `entity_nbt_num_get/set` | NeoForge `Entity#getPersistentData()` is not a Fabric API | Added `entity_nbt_*` templates and a generated `${JavaModName}EntityNbt` helper backed by a persistent Fabric attachment |
+| `test-everrose` | Armor inventory icon rendered as a missing texture while the worn armor rendered correctly | The armor item definitions used the misspelled variable `sufix`; the item model template reads `suffix` | Corrected all four armor model suffixes to `suffix` |
+
+The `test-croparium-lite` workspace compiled and launched before these fixes and remains the control fixture.
+
+
 ## 5. Verification record
 
 ### 5.1 Static validation
@@ -127,9 +141,9 @@ pwsh plugin/tools/validate.ps1 -MCreatorRoot <workspace>/MCreatorEAP2026344621
 Result:
 
 ```text
-Checks: 28, failures: 0
+Checks: 40, failures: 0
 YAML files: 172, errors: 0
-FTL files: 2546, errors: 0
+FTL files: 2604, errors: 0
 ```
 
 The validator checks generator imports, single `generator.yaml`, template references, literal include resolution, legacy `types[...]` usage, NeoForge Java pollution, `defaultRequire`, fragment use, `base_types`, void dimension, enchantment effect templates, the new procedure templates, the custom attack AI task, Fabric Loader/Fabric API versions and the Gradle wrapper URL.
@@ -175,14 +189,38 @@ Because the Gradle daemon cannot see the project directory in this sandbox, the 
 
 ```text
 plugin/build/libs/generator-fabric-26.1.2.zip
-size: 1,228,650 bytes
-sha256: E7A377EFCC011FD0296FCB3C532447FFA98AFEEF13106FDDAEB8CE6B8ABF5E57
+size: 1,240,206 bytes
+sha256: D1D23DB69EB8CA4CB20066D1663CE2B3DABB34385E29F1C240BF754D8A06D754
 top-level: plugin.json, LICENSE, help/, fabric-26.1.2/, fabric-26.1.2-base/
 generator.yaml count: 1
 embedded base generator.yaml count: 0
 ```
 
 The manual ZIP is structurally correct and was the archive used by the real MCreator plugin-loader probe. The Gradle build remains the authoritative build entry point on the user machine.
+
+### 5.6 Four-workspace re-test state
+
+The four acceptance workspaces were generated with the previous plugin build. After the compatibility fixes above, they must be regenerated before the final verdict:
+
+| Fixture | Previous result | Expected after regeneration |
+|---|---|---|
+| `test-better-melon` | Compile failed on missing `HavingUsedEnchantedMelonSliceProcedure` | Procedure class generated; `player_useitem_finish` trigger available |
+| `test-croparium-full` | Compile failed with empty `block_inv_*` and `entity_nbt_*` expressions | `block_inv_*` and `entity_nbt_*` templates emit complete code |
+| `test-croparium-lite` | Compiled and client started | Regression check; should remain unchanged |
+| `test-everrose` | Compiled and client started; armor inventory icon missing | Per-piece armor item models resolve; icon should use the generated item texture |
+
+The previously generated Java and resource files are not patched in place. Regeneration from MCreator is required so the new templates are applied.
+
+### 5.7 Generated-code API fixture compile
+
+A fixture containing the new block-inventory helpers, the entity NBT attachment helper, the finish-use event and the `Container`-based damage path was compiled with `javac` 25 against:
+
+- the Loom interface-injected Minecraft 26.1.2 jar from the `test-everrose` workspace;
+- Fabric Loader 0.20.1;
+- the Fabric API 0.155.3 module jars;
+- the exact Mojang library versions from the 26.1.2 version manifest (`datafixerupper 9.0.19`, `fastutil 8.5.18`, `brigadier 1.3.10`, `authlib 7.0.63`, and related jars).
+
+Result: `exit=0`. This validates the Java API usage of the workspace-driven fixes independently of MCreator's template rendering. The fixture is a development diagnostic under `caches/tools/fixture/` and is not part of the plugin.
 
 ## 6. Known limitations
 
@@ -192,6 +230,9 @@ The manual ZIP is structurally correct and was the archive used by the real MCre
 - **Hide tab title**: implemented with an access transformer on `CreativeModeTab$Builder.showTitle`. The field is visible in the 26.1.2 NeoForge patch context, but the generated class tweaker must be checked during a real client launch.
 - **Piglin currency**: `ItemStack.isPiglinCurrency()` is a NeoForge extension and is not available in Fabric. The procedure block uses the vanilla `PiglinAi.isBarterCurrency(ItemStack)` helper through an access transformer fragment. The `Item` element property `isPiglinCurrency` remains excluded as a NeoForge-only field. The generated class tweaker must be checked during a real client launch.
 - **Invulnerable-time field**: `entity_invulnerabletime` and `entity_set_invulnerabletime` use direct `invulnerableTime` field access, matching the NeoForge 26.1.2 reference. If the 26.1.2 runtime exposes accessors instead, the templates need a one-line change.
+- **Entity NBT**: entity NBT is stored in a persistent Fabric data attachment, not NeoForge `Entity#getPersistentData()`. The generated helper covers numeric, logic, text and item-stack get/set blocks.
+- **Block inventory procedures**: the `block_inv_*` family uses vanilla `Container` block entities. NeoForge `IItemHandler`-only blocks are not covered.
+- **Finish-use trigger**: the `completeUsingItem` mixin uses `require = 0`; if the target method changes, the trigger is skipped rather than crashing.
 - **Level-based enchantment input naming**: the `divided` input is represented by the `level_based_value_fraction.json.ftl` template. Confirm that the 2026.3 blockly XML uses the `fraction` template key.
 - **No in-game test**: workspace creation, code generation, generated Gradle build and client launch were not performed in this sandbox.
 - **License context**: the plugin LICENSE is CC BY-NC 4.0 per the delivery specification, while copied upstream templates retain their GPL-3.0 headers. Legal review is required before redistribution.
@@ -205,3 +246,6 @@ The manual ZIP is structurally correct and was the archive used by the real MCre
 5. Launch the client and verify the block model, item model, creative tab (including `hideTitle` if selected), enchantment effects and the new procedure blocks.
 6. For a block entity workspace, verify that `Blocks.load()` and `BlockEntities.load()` are both generated and that the block entity registers.
 7. If a custom OBJ model or a global loot modifier is selected, expect the documented limitation rather than a successful build.
+8. Regenerate `test-better-melon` and confirm `HavingUsedEnchantedMelonSliceProcedure` is generated and the build succeeds.
+9. Regenerate `test-croparium-full` and confirm the `block_inv_*` and `entity_nbt_*` procedures compile without empty expressions.
+10. Regenerate `test-everrose` and confirm the armor inventory icons use `assets/<modid>/textures/item/<piece>.png` instead of the missing-texture placeholder. Re-run `test-croparium-lite` as the regression control.

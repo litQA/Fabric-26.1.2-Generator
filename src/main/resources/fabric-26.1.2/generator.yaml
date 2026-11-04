@@ -89,6 +89,9 @@ base_templates:
   - template: elementinits/tabs.java.ftl
     name: "@SRCROOT/@BASEPACKAGEPATH/init/@JavaModNameTabs.java"
     condition: hasItemsInTabs()
+  - template: elementinits/entitynbt.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/procedures/@JavaModNameEntityNbt.java"
+    condition: "${w.getGElementsOfType('procedure')?filter(e -> e.procedurexml?contains('entity_nbt_'))?size != 0}"
   - template: modbase/accesswidener.ftl
     usercodeComment: "#"
     writer: file

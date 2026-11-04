@@ -47,3 +47,17 @@ Status vocabulary:
 - The inherited NeoForge object-model JSON templates use `neoforge:obj`; this is retained for upstream parity and documented as a limitation for custom OBJ models.
 - `types.base_items`, `types.base_blocks`, `types.base_entities`, `types.base_blockentities`, `types.base_features` and `types.base_dispensebehaviors` are used for registration calls so element-only workspaces do not miss generated initializers.
 - Generator fragments are used for the new `hideTitle` access transformer and for any future element-level mixin or access transformer additions.
+
+## Compatibility fixes from the four acceptance workspaces
+
+These items are outside `new_features.txt` but were required by real 100-500 element workspaces:
+
+| Fixture symptom | Fix | Status |
+|---|---|---|
+| `player_useitem_finish` procedure class missing | Added the `ENTITY_FINISH_USING_ITEM` event, `completeUsingItem` mixin and trigger template | Implemented; regeneration pending |
+| Empty `block_inv_*` expressions | Added all 13 block inventory templates using vanilla `Container` helpers | Implemented; regeneration pending |
+| Empty `entity_nbt_*` expressions | Added eight entity NBT templates and the `${JavaModName}EntityNbt` persistent attachment helper | Implemented; regeneration pending |
+| Armor inventory icon missing texture | Corrected the armor model `suffix` variable from `sufix` | Implemented; regeneration pending |
+
+The block inventory family covers slot count, slot stack limit, slot item, slot amount, insert, extract, set, clear and remove operations. The entity NBT family uses a persistent Fabric attachment and does not emit NeoForge `getPersistentData()`.
+

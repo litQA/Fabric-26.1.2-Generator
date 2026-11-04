@@ -16,6 +16,9 @@
 - New procedure blocks cover strong redstone emission, vector dot product, line of sight, invulnerable time, attack cooldown, forced player attack, entity movement, item repair, empty stacks, piglin currency and item damage-source checks.
 - New AI task `attack_with_procedure` adds a custom melee attack goal driven by a procedure.
 - The piglin-currency check uses the vanilla `PiglinAi.isBarterCurrency` helper through an access transformer fragment; the NeoForge-only item property remains excluded.
+- Fabric-compatible block inventory procedure blocks use vanilla `Container` access for slot queries, insertion, extraction, removal and item damage.
+- Entity NBT procedure blocks persist through a Fabric data attachment helper generated only when an `entity_nbt_*` block is used.
+- The `player_useitem_finish` trigger is driven by a `LivingEntity.completeUsingItem` mixin and the new `ENTITY_FINISH_USING_ITEM` event.
 
 ### Changes
 
@@ -27,10 +30,13 @@
 
 ### Fixes
 
-Fixed 2 bug(s).
+Fixed 5 bug(s).
 
 - Generator base layers no longer depend on externally installed `datapack-26.1.x` or `neoforge-26.1.2` plugin paths.
 - Item loading is driven by `types.base_items`, so block items, armor, tools and other item-providing elements are registered even when no standalone item element exists.
+- Armor inventory icons resolve to the generated per-piece item models after correcting the `suffix` model variable.
+- The finish-use trigger no longer leaves a missing procedure class in workspaces that use `player_useitem_finish`.
+- Block inventory and entity NBT procedure blocks no longer emit empty expressions and invalid Java.
 
 ### Known Limitations
 
@@ -40,4 +46,5 @@ Fixed 2 bug(s).
 - The `hideTitle` adaptation relies on an access transformer for `CreativeModeTab$Builder.showTitle`; it must be verified in a real client launch.
 - The piglin-currency procedure relies on an access transformer for the vanilla `PiglinAi.isBarterCurrency` helper; the `Item` element property `isPiglinCurrency` remains a NeoForge-only field and is excluded.
 - The `entity_invulnerabletime` templates use direct field access, matching the NeoForge 26.1.2 reference; a 26.1.2 accessor change would require a template adjustment.
+- Entity NBT is stored in a Fabric data attachment rather than NeoForge `Entity#getPersistentData()`; block inventory procedures require the target block entity to implement vanilla `Container`.
 - Full Gradle and in-game verification must be completed on the user machine; see `MIGRATION-REPORT.md`.
