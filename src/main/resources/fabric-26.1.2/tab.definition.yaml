@@ -1,0 +1,10 @@
+localizationkeys:
+  - key: item_group.@modid.@registryname
+    mapto: name
+
+# Minecraft 26.1.2 has no public CreativeModeTab.Builder#hideTitle(). The field is
+# opened only when a tab requests the hidden-title option, through the fragments system.
+fragments:
+  - type: accesstransformer
+    condition: "${tabs?filter(e -> e.hideTitle)?size != 0}"
+    content: accessible field net/minecraft/world/item/CreativeModeTab$Builder showTitle Z

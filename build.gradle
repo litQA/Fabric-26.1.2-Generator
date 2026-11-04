@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.litqa'
+version = pluginVersion
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+def supportedVersion = {
+    def parts = mcreatorVersion.split('\\.')
+    def major = parts[0] + parts[1].padLeft(3, '0')
+    if (parts.length == 2)
+        return major
+    return major + parts[2]
+}()
+
+tasks.named('processResources') {
+    filesMatching('plugin.json') {
+        expand(
+                mcVersion: mcVersion,
+                mcreatorVersion: mcreatorVersion,
+                pluginVersion: pluginVersion,
+                supportedVersion: supportedVersion
+        )
+    }
+}
+
+tasks.jar {
+    archiveFileName.set('generator-fabric-26.1.2.zip')
+    // The jar is the MCreator plugin archive: resources are placed at the ZIP root.
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+}
+
+tasks.register('buildPlugin') {
+    group = 'build'
+    description = 'Builds the MCreator Fabric 26.1.2 generator plugin archive.'
+    dependsOn tasks.named('jar')
+}
+
+tasks.build {
+    dependsOn tasks.named('buildPlugin')
+}
+
+tasks.register('exportPlugin', Copy) {
+    group = 'mcreator_plugins'
+    dependsOn tasks.named('jar')
+    from(layout.buildDirectory.dir('libs'))
+    into(layout.buildDirectory)
+    include 'generator-fabric-26.1.2.zip'
+}

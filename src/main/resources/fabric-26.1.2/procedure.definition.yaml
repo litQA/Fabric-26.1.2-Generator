@@ -1,0 +1,16 @@
+templates:
+  - template: procedure.java.ftl
+    name: "@SRCROOT/@BASEPACKAGEPATH/procedures/@NAMEProcedure.java"
+
+global_templates:
+  - template: elementinits/procedures.java.ftl
+    writer: java
+    name: "@SRCROOT/@BASEPACKAGEPATH/init/@JavaModNameProcedures.java"
+    condition: "${w.getGElementsOfType('procedure')?filter(e -> !e.procedurexml?contains('no_ext_trigger'))?size != 0}"
+
+# Fabric has no ItemStack#isPiglinCurrency (a NeoForge extension). Open the
+# vanilla PiglinAi.isBarterCurrency helper only when the procedure block is used.
+fragments:
+  - type: accesstransformer
+    condition: "${procedures?filter(e -> e.procedurexml?contains('item_is_piglin_currency'))?size != 0}"
+    content: accessible method net/minecraft/world/entity/monster/piglin/PiglinAi isBarterCurrency (Lnet/minecraft/world/item/ItemStack;)Z

@@ -1,0 +1,12 @@
+{
+  "id": "generator-fabric-${mcVersion}",
+  "weight": 10,
+  "supportedversions": [${supportedVersion}, 202600399999],
+  "info": {
+    "name": "Minecraft Fabric ${mcVersion} Generator",
+    "version": "${pluginVersion}",
+    "description": "Fabric generator for Minecraft ${mcVersion}, ported to MCreator ${mcreatorVersion}. Includes embedded datapack and NeoForge-derived base layers for standalone loading.",
+    "author": "LitQA",
+    "credits": "Based on Fabric-Generator-MCreator by Goldorion, NerdyPuzzle and Spectrall; NeoForge 26.1.2 generator reference from MCreator."
+  }
+}

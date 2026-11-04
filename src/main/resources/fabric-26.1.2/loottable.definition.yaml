@@ -1,0 +1,8 @@
+templates:
+  - template: loottable.json.ftl # loaded from datapack generator
+    writer: json
+    name: "@RESROOT/data/@[getNamespace()]/loot_table/@[getName()].json"
+
+# Fabric API has no global loot modifier registry. The NeoForge-only
+# "add_table" loot modifier field is excluded instead of emitting NeoForge code.
+field_exclusions: [lootTableToModify]
