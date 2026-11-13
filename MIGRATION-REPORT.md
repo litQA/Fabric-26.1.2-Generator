@@ -9,7 +9,7 @@
 | Target MCreator | EAP 2026.3.44621 (`202600344621`) |
 | Target Minecraft | 26.1.2 |
 | Generator ID | `generator-fabric-26.1.2` |
-| Plugin version | `2026.3-1.0.2-beta` |
+| Plugin version | `2026.3-1.0.3.1-beta` |
 | Fabric Loader | 0.20.1 |
 | Fabric API | 0.155.3 |
 | Java | 25 |
@@ -99,7 +99,8 @@ Handling:
 
 - `generator.yaml` uses `buildfileversion: 0.155.3` and `subversion: 6`.
 - `workspacebase/build.gradle` uses `net.fabricmc:fabric-loader:0.20.1`.
-- The workspace wrapper and the plugin wrapper use the local Gradle 9.8.0 distribution URL required by the delivery specification.
+- The plugin wrapper and all three embedded `workspacebase` wrappers default to the public Gradle 9.8.0 URL: `https://services.gradle.org/distributions/gradle-9.8.0-bin.zip`.
+- No local absolute Gradle URL is committed. A local fallback is permitted only when it is resolved dynamically from the workspace root and the archive exists under `reference_resources`.
 
 ## 4. `new_features.txt` status summary
 
@@ -142,12 +143,12 @@ pwsh plugin/tools/validate.ps1 -MCreatorRoot <workspace>/MCreatorEAP2026344621
 Result:
 
 ```text
-Checks: 48, failures: 0
+Checks: 50, failures: 0
 YAML files: 172, errors: 0
 FTL files: 2604, errors: 0
 ```
 
-The validator checks generator imports, single `generator.yaml`, template references, literal include resolution, legacy `types[...]` usage, NeoForge Java pollution, `defaultRequire`, fragment use, `base_types`, void dimension, enchantment effect templates, the new procedure templates, the custom attack AI task, Fabric Loader/Fabric API versions and the Gradle wrapper URL.
+The validator checks generator imports, single `generator.yaml`, template references, literal include resolution, legacy `types[...]` usage, NeoForge Java pollution, `defaultRequire`, fragment use, `base_types`, void dimension, enchantment effect templates, the new procedure templates, the custom attack AI task, Fabric Loader/Fabric API versions, the public Gradle wrapper URL and the absence of hardcoded local paths in source and workspace templates.
 
 ### 5.2 Real MCreator plugin load
 
@@ -156,7 +157,7 @@ A headless probe used the actual MCreator EAP classes, the real `PluginLoader`, 
 Result:
 
 ```text
-PLUGIN generator-fabric-26.1.2 version=2026.3-1.0.2-beta loaded=true compatible=true weight=10
+PLUGIN generator-fabric-26.1.2 version=2026.3-1.0.3.1-beta loaded=true compatible=true weight=10
 failed plugins=0
 ```
 
@@ -190,8 +191,8 @@ Because the Gradle daemon cannot see the project directory in this sandbox, the 
 
 ```text
 plugin/build/libs/generator-fabric-26.1.2.zip
-size: 1,240,468 bytes
-sha256: 25B9187866DC0974DE5FF842857D2D3FA1BA25D30579FADF100B22DEED6D0466
+size: 1,240,342 bytes
+sha256: 82DB69FBF2873B8ACB141ED5F82D1C20F1580B54CB02F15B3061B70DC3CB4EAE
 top-level: plugin.json, LICENSE, help/, fabric-26.1.2/, fabric-26.1.2-base/
 generator.yaml count: 1
 embedded base generator.yaml count: 0
@@ -224,6 +225,17 @@ A fixture containing the new block-inventory helpers, the entity NBT attachment 
 
 Result: `exit=0`. This validates the Java API usage of the workspace-driven fixes independently of MCreator's template rendering. The fixture is a development diagnostic under `caches/tools/fixture/` and is not part of the plugin.
 
+### 5.8 Source-tree local-path audit
+
+The source tree was audited for Windows drive paths, POSIX home paths and `file:///` drive URLs. Four wrapper files contained a local Gradle distribution URL:
+
+- `plugin/gradle/wrapper/gradle-wrapper.properties`
+- `plugin/src/main/resources/fabric-26.1.2/workspacebase/gradle/wrapper/gradle-wrapper.properties`
+- `plugin/src/main/resources/fabric-26.1.2-base/datapack/workspacebase/gradle/wrapper/gradle-wrapper.properties`
+- `plugin/src/main/resources/fabric-26.1.2-base/neoforge/workspacebase/gradle/wrapper/gradle-wrapper.properties`
+
+All four now use `https\://services.gradle.org/distributions/gradle-9.8.0-bin.zip`. The validator performs a repeatable scan over text source files and excludes `build/` and `.git/`; it reports zero local-path hits. The generated-project templates therefore contain no local absolute path.
+
 ## 6. Known limitations
 
 - **Global loot modifiers**: not applicable to Fabric; `lootTableToModify` is hidden.
@@ -236,6 +248,7 @@ Result: `exit=0`. This validates the Java API usage of the workspace-driven fixe
 - **Block inventory procedures**: the `block_inv_*` family uses vanilla `Container` block entities. NeoForge `IItemHandler`-only blocks are not covered.
 - **Finish-use trigger**: the `completeUsingItem` mixin uses `require = 0`; if the target method changes, the trigger is skipped rather than crashing.
 - **Custom Java armor models**: the equipment mixin now applies the per-model texture and the helmet root translation is normalized. Authored rotation/scale and non-head custom parts are not normalized; full block models may still need manual placement.
+- **Gradle local fallback**: the wrapper defaults to the public distribution URL. An offline fallback is not automatic; it must be resolved dynamically from the workspace root when the public download fails.
 - **Level-based enchantment input naming**: the `divided` input is represented by the `level_based_value_fraction.json.ftl` template. Confirm that the 2026.3 blockly XML uses the `fraction` template key.
 - **No in-game test**: workspace creation, code generation, generated Gradle build and client launch were not performed in this sandbox.
 - **License context**: the plugin LICENSE is CC BY-NC 4.0 per the delivery specification, while copied upstream templates retain their GPL-3.0 headers. Legal review is required before redistribution.

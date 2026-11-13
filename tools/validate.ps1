@@ -227,9 +227,9 @@ $equipmentMixin = Get-Content -LiteralPath (Join-Path $fabric "templates\armor\e
 Check ($equipmentMixin -match 'getArmorTexture') "equipment layer mixin applies the custom armor model texture"
 
 $gradleProperties = Get-Content -LiteralPath (Join-Path $pluginRoot "gradle.properties") -Raw
-Check ($gradleProperties -match 'pluginVersion=2026\.3-1\.0\.2-beta') "plugin version is 2026.3-1.0.2-beta"
+Check ($gradleProperties -match 'pluginVersion=2026\.3-1\.0\.3\.1-beta') "plugin version is 2026.3-1.0.3.1-beta"
 $readme = Get-Content -LiteralPath (Join-Path $pluginRoot "README.md") -Raw
-Check ($readme -match 'https://github\.com/user-attachments/assets/b2ff8988-cd71-42c3-9b53-84d1e35ab98f') "README keeps the standard banner image link"
+Check ($readme -match 'https://github\.com/user-attachments/assets/a210a188-8b5a-4e03-97b4-1754d6b0e59d') "README keeps the standard banner image link"
 Check ($readme -match '# MCreator - Minecraft Mod Maker') "README keeps the MCreator footer heading"
 Check ($readme.TrimEnd().EndsWith('NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.')) "README keeps the standard MCreator footer"
 Check (Test-Path (Join-Path $pluginRoot "tools\check-archive.ps1")) "archive check script exists"
@@ -237,7 +237,22 @@ Check (Test-Path (Join-Path $pluginRoot "tools\check-archive.ps1")) "archive che
 $workspaceBuild = Get-Content -LiteralPath (Join-Path $fabric "workspacebase\build.gradle") -Raw
 Check ($workspaceBuild -match 'fabric-loader:0\.20\.1') "workspacebase uses Fabric Loader 0.20.1"
 $wrapper = Get-Content -LiteralPath (Join-Path $fabric "workspacebase\gradle\wrapper\gradle-wrapper.properties") -Raw
-Check ($wrapper -match 'gradle-9\.8\.0-bin\.zip') "workspacebase wrapper points to Gradle 9.8.0"
+Check ($wrapper -match 'distributionUrl=https\\://services\.gradle\.org/distributions/gradle-9\.8\.0-bin\.zip') "workspacebase wrapper uses the public Gradle 9.8.0 URL"
+Check ($wrapper -notmatch 'file\\?:///') "workspacebase wrapper contains no local file URL"
+
+$localPathPattern = 'file\\?:///[A-Za-z]:|(^|[^A-Za-z])[A-Za-z]:\\|(^|[^A-Za-z])[A-Za-z]:/[A-Za-z]|/' + 'home' + '/|/' + 'Users' + '/|/' + 'mnt' + '/'
+$auditFiles = @()
+foreach ($pattern in @('*.properties', '*.gradle', '*.ftl', '*.yaml', '*.json', '*.md', '*.ps1', '*.java', '*.txt', '*.xml', '*.toml', 'gradlew', 'gradlew.bat')) {
+    $auditFiles += Get-Files $pluginRoot $pattern
+}
+$auditFiles = @($auditFiles | Where-Object { $_.FullName -notmatch '\\build\\|\\.git\\' } | Sort-Object FullName -Unique)
+$localPathHits = @($auditFiles | Select-String -Pattern $localPathPattern)
+if ($localPathHits.Count -gt 0) {
+    foreach ($hit in $localPathHits) {
+        Write-Host "FAIL  local path in $($hit.Path):$($hit.LineNumber): $($hit.Line.Trim())" -ForegroundColor Red
+    }
+}
+Check ($localPathHits.Count -eq 0) "no hardcoded local absolute paths or file URLs in source"
 
 if (-not $SkipJavaParse) {
     $jdk = Join-Path $MCreatorRoot "jdk\bin"

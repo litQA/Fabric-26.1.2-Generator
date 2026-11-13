@@ -2,6 +2,28 @@
 
 All notable changes to the Fabric 26.1.2 generator are recorded in this file.
 
+## 2026.3-1.0.3.1-beta
+
+### New Content
+
+- Source-tree audit in `tools/validate.ps1` rejects hardcoded local absolute paths and `file:///` drive URLs in the plugin source and workspace templates.
+
+### Changes
+
+- Plugin version migrated to the four-field format `2026.3-1.0.3.1-beta`; the build sequence starts at 1 under the new scheme.
+- The plugin wrapper and all three embedded `workspacebase` wrappers default to `https://services.gradle.org/distributions/gradle-9.8.0-bin.zip`.
+- Any local Gradle fallback is no longer committed to source; it must be resolved dynamically from the workspace root and the `reference_resources` archive.
+
+### Fixes
+
+Fixed 1 bug(s).
+
+- The plugin wrapper and workspace templates no longer contain hardcoded local `file:///` distribution URLs.
+
+### Known Limitations
+
+- The Gradle wrapper defaults to the public distribution URL. An offline fallback is not automatic; it must be supplied dynamically from the workspace root when the public download fails.
+
 ## 2026.3-1.0.2-beta
 
 ### New Content

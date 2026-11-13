@@ -19,6 +19,8 @@ archive with Fabric Loader 0.20.1 and Fabric API 0.155.3 support.
 
 Output: `build/libs/generator-fabric-26.1.2.zip`.
 
+The wrapper defaults to the public Gradle 9.8.0 distribution. Do not commit a local distribution URL; resolve any offline fallback dynamically from the workspace root.
+
 A Gradle-free fallback is available for environments where the Gradle daemon cannot access the
 workspace:
 

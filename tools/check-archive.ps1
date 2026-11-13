@@ -13,7 +13,14 @@ if (-not (Test-Path -LiteralPath $Archive)) {
     exit 1
 }
 
-$entries = @(tar -tf $Archive 2>$null)
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archivePath = (Resolve-Path -LiteralPath $Archive).Path
+$zip = [System.IO.Compression.ZipFile]::OpenRead($archivePath)
+try {
+    $entries = @($zip.Entries | ForEach-Object { $_.FullName })
+} finally {
+    $zip.Dispose()
+}
 $topLevel = @($entries | ForEach-Object { ($_ -split '/')[0] } | Sort-Object -Unique)
 $generatorYaml = @($entries | Where-Object { $_ -match '(^|/)generator\.yaml$' })
 $baseGeneratorYaml = @($entries | Where-Object { $_ -match '^fabric-26\.1\.2-base/.*generator\.yaml$' })
