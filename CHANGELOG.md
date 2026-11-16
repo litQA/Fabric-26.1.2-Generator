@@ -2,6 +2,20 @@
 
 All notable changes to the Fabric 26.1.2 generator are recorded in this file.
 
+## 2026.3-1.0.4.3-beta
+
+### Changes
+
+- Version raised to `2026.3-1.0.4.3-beta` and rebuilt.
+- Validation references now use generic test-workspace labels only.
+
+### Fixes
+
+Fixed 2 bug(s).
+
+- Removed private test-workspace names and private generated-class names from the changelog, migration report and feature report.
+- Packaging now writes forward-slash ZIP entries, and the archive checker rejects backslash entries.
+
 ## 2026.3-1.0.3.1-beta
 
 ### New Content
@@ -101,7 +115,7 @@ Fixed 3 bug(s).
 - `plugin.json` uses generator ID `generator-fabric-26.1.2`, weight 10, author LitQA and version `2026.3-1.0.0-beta`.
 - Only the main generator keeps `generator.yaml`; both embedded base layers are namespaced and have no `generator.yaml`.
 - `modbase/mixin.json.ftl` uses `defaultRequire: 0`; all generated `@Inject` annotations use `require = 0`.
-- The workspace Gradle wrapper points to the local Gradle 9.8.0 distribution required by the delivery specification.
+- The workspace Gradle wrapper points to the required Gradle 9.8.0 distribution.
 - The NeoForge base attribute mapping is trimmed of `NeoForgeMod` entries to avoid generating NeoForge Java references.
 
 ### Fixes

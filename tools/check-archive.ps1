@@ -21,10 +21,11 @@ try {
 } finally {
     $zip.Dispose()
 }
-$topLevel = @($entries | ForEach-Object { ($_ -split '/')[0] } | Sort-Object -Unique)
-$generatorYaml = @($entries | Where-Object { $_ -match '(^|/)generator\.yaml$' })
-$baseGeneratorYaml = @($entries | Where-Object { $_ -match '^fabric-26\.1\.2-base/.*generator\.yaml$' })
-$forbidden = @($entries | Where-Object { $_ -match '^(build|tools|\.gradle)/' })
+$topLevel = @($entries | ForEach-Object { ($_ -split '[\\/]')[0] } | Sort-Object -Unique)
+$generatorYaml = @($entries | Where-Object { $_ -match '(^|[\\/])generator\.yaml$' })
+$baseGeneratorYaml = @($entries | Where-Object { $_ -match '^fabric-26\.1\.2-base[\\/].*generator\.yaml$' })
+$forbidden = @($entries | Where-Object { $_ -match '^(build|tools|\.gradle)[\\/]' })
+$backslashEntries = @($entries | Where-Object { $_ -match '\\' })
 
 $failures = 0
 function Check([bool]$condition, [string]$message) {
@@ -43,6 +44,7 @@ Check ($topLevel -contains "fabric-26.1.2-base") "archive contains the embedded 
 Check ($generatorYaml.Count -eq 1) "archive contains exactly one generator.yaml"
 Check ($baseGeneratorYaml.Count -eq 0) "embedded base layers contain no generator.yaml"
 Check ($forbidden.Count -eq 0) "archive contains no build, tools or .gradle entries"
+Check ($backslashEntries.Count -eq 0) "archive entry paths use forward-slash separators"
 
 $item = Get-Item -LiteralPath $Archive
 $hash = (Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash

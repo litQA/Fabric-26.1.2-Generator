@@ -48,11 +48,11 @@ Status vocabulary:
 - `types.base_items`, `types.base_blocks`, `types.base_entities`, `types.base_blockentities`, `types.base_features` and `types.base_dispensebehaviors` are used for registration calls so element-only workspaces do not miss generated initializers.
 - Generator fragments are used for the new `hideTitle` access transformer and for any future element-level mixin or access transformer additions.
 
-## Compatibility fixes from the four acceptance workspaces
+## Compatibility fixes from the test workspaces
 
-These items are outside `new_features.txt` but were required by real 100-500 element workspaces:
+These items are outside `new_features.txt` but were required by test workspaces with 100-500 elements:
 
-| Fixture symptom | Fix | Status |
+| Symptom | Fix | Status |
 |---|---|---|
 | `player_useitem_finish` procedure class missing | Added the `ENTITY_FINISH_USING_ITEM` event, `completeUsingItem` mixin and trigger template | Implemented; regeneration pending |
 | Empty `block_inv_*` expressions | Added all 13 block inventory templates using vanilla `Container` helpers | Implemented; regeneration pending |

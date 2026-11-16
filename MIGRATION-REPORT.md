@@ -9,7 +9,7 @@
 | Target MCreator | EAP 2026.3.44621 (`202600344621`) |
 | Target Minecraft | 26.1.2 |
 | Generator ID | `generator-fabric-26.1.2` |
-| Plugin version | `2026.3-1.0.3.1-beta` |
+| Plugin version | `2026.3-1.0.4.3-beta` |
 | Fabric Loader | 0.20.1 |
 | Fabric API | 0.155.3 |
 | Java | 25 |
@@ -117,17 +117,17 @@ The two adapted items are the creative tab `hideTitle` option and the piglin-cur
 
 ### 4.1 Workspace-driven compatibility fixes
 
-Four real workspaces with 100-500 elements each were used as acceptance fixtures. They exposed five compatibility gaps that were not visible in the `new_features.txt` matrix:
+Four test workspaces with 100-500 elements each were used as acceptance fixtures. They exposed five compatibility gaps that were not visible in the `new_features.txt` matrix:
 
-| Fixture | Symptom | Root cause | Fix |
+| Test workspace | Symptom | Root cause | Fix |
 |---|---|---|---|
-| `test-better-melon` | `HavingUsedEnchantedMelonSliceProcedure` was missing, leaving `QaBetterMelonModProcedures` uncompilable | The core 2026.3 trigger `player_useitem_finish` had no Fabric trigger template | Added `ENTITY_FINISH_USING_ITEM`, a `completeUsingItem` mixin injection and `triggers/player_useitem_finish.java.ftl` |
-| `test-croparium-full` | Empty expressions such as `||>=64`, `sn = ;`, `== CpLibModItems...` in generated procedures | NeoForge `block_inv_*` procedure blocks had no Fabric templates; the old Fabric generator only shipped a small subset | Added all 13 `block_inv_*` templates backed by vanilla `Container` helpers |
-| `test-croparium-full` | Empty numeric expressions from `entity_nbt_num_get/set` | NeoForge `Entity#getPersistentData()` is not a Fabric API | Added `entity_nbt_*` templates and a generated `${JavaModName}EntityNbt` helper backed by a persistent Fabric attachment |
-| `test-everrose` | Armor inventory icon rendered as a missing texture while the worn armor rendered correctly | The armor item definitions used the misspelled variable `sufix`; the item model template reads `suffix` | Corrected all four armor model suffixes to `suffix` |
-| `test-better-melon` (1.0.2 follow-up) | Custom Java armor model texture and skeleton rendered incorrectly | The equipment layer mixin ignored `ArmorModel.getArmorTexture`; the custom head part kept the Blockbench entity/block Y offset | Mixin now applies the per-model texture; `prepareCustomHeadPart` zeroes the root translation |
+| Test workspace A | The generated procedure class was missing, leaving the generated procedures class uncompilable | The core 2026.3 trigger `player_useitem_finish` had no Fabric trigger template | Added `ENTITY_FINISH_USING_ITEM`, a `completeUsingItem` mixin injection and `triggers/player_useitem_finish.java.ftl` |
+| Test workspace B | Empty expressions such as `||>=64`, `sn = ;` and `== <generated items field>...` in generated procedures | NeoForge `block_inv_*` procedure blocks had no Fabric templates; the old Fabric generator only shipped a small subset | Added all 13 `block_inv_*` templates backed by vanilla `Container` helpers |
+| Test workspace B | Empty numeric expressions from `entity_nbt_num_get/set` | NeoForge `Entity#getPersistentData()` is not a Fabric API | Added `entity_nbt_*` templates and a generated `${JavaModName}EntityNbt` helper backed by a persistent Fabric attachment |
+| Test workspace D | Armor inventory icon rendered as a missing texture while the worn armor rendered correctly | The armor item definitions used the misspelled variable `sufix`; the item model template reads `suffix` | Corrected all four armor model suffixes to `suffix` |
+| Test workspace A (1.0.2 follow-up) | Custom Java armor model texture and skeleton rendered incorrectly | The equipment layer mixin ignored `ArmorModel.getArmorTexture`; the custom head part kept the Blockbench entity/block Y offset | Mixin now applies the per-model texture; `prepareCustomHeadPart` zeroes the root translation |
 
-The `test-croparium-lite` workspace compiled and launched before these fixes and remains the control fixture.
+Test workspace C compiled and launched before these fixes and remains the control fixture.
 
 
 ## 5. Verification record
@@ -157,7 +157,7 @@ A headless probe used the actual MCreator EAP classes, the real `PluginLoader`, 
 Result:
 
 ```text
-PLUGIN generator-fabric-26.1.2 version=2026.3-1.0.3.1-beta loaded=true compatible=true weight=10
+PLUGIN generator-fabric-26.1.2 version=2026.3-1.0.4.3-beta loaded=true compatible=true weight=10
 failed plugins=0
 ```
 
@@ -191,26 +191,26 @@ Because the Gradle daemon cannot see the project directory in this sandbox, the 
 
 ```text
 plugin/build/libs/generator-fabric-26.1.2.zip
-size: 1,240,342 bytes
-sha256: 82DB69FBF2873B8ACB141ED5F82D1C20F1580B54CB02F15B3061B70DC3CB4EAE
+size: 1,238,277 bytes
+sha256: 80FB9113D700B9C9E8E58D6C7C8B31B18B0EA0891C131CDBB5D3421A3466D968
 top-level: plugin.json, LICENSE, help/, fabric-26.1.2/, fabric-26.1.2-base/
 generator.yaml count: 1
 embedded base generator.yaml count: 0
 ```
 
-The manual ZIP is structurally correct and was the archive used by the real MCreator plugin-loader probe. The Gradle build remains the authoritative build entry point on the user machine.
+The manual ZIP is structurally correct and was the archive used by the real MCreator plugin-loader probe. Entry paths are written with forward slashes and the archive checker rejects backslash entries, matching the ZIP specification and the plugin loader's expectations. The Gradle build remains the authoritative build entry point on the user machine.
 
-### 5.6 Four-workspace re-test state
+### 5.6 Test-workspace re-test state
 
-The four acceptance workspaces were generated with the previous plugin build. After the compatibility fixes above, they must be regenerated before the final verdict:
+The four test workspaces were generated with the previous plugin build. After the compatibility fixes above, they must be regenerated before the final verdict:
 
-| Fixture | Previous result | Expected after regeneration |
+| Test workspace | Previous result | Expected after regeneration |
 |---|---|---|
-| `test-better-melon` | Compile failed on missing `HavingUsedEnchantedMelonSliceProcedure` | Procedure class generated; `player_useitem_finish` trigger available |
-| `test-croparium-full` | Compile failed with empty `block_inv_*` and `entity_nbt_*` expressions | `block_inv_*` and `entity_nbt_*` templates emit complete code |
-| `test-croparium-lite` | Compiled and client started | Regression check; should remain unchanged |
-| `test-everrose` | Compiled and client started; armor inventory icon missing | Per-piece armor item models resolve; icon should use the generated item texture |
-| `test-better-melon` (1.0.2) | Compiled and launched; custom Java armor model texture and skeleton abnormal | Custom model texture applied and root head translation normalized; visual check pending |
+| Test workspace A | Compile failed on a missing generated procedure class | Procedure class generated; `player_useitem_finish` trigger available |
+| Test workspace B | Compile failed with empty `block_inv_*` and `entity_nbt_*` expressions | `block_inv_*` and `entity_nbt_*` templates emit complete code |
+| Test workspace C | Compiled and client started | Regression check; should remain unchanged |
+| Test workspace D | Compiled and client started; armor inventory icon missing | Per-piece armor item models resolve; icon should use the generated item texture |
+| Test workspace A (1.0.2 follow-up) | Compiled and launched; custom Java armor model texture and skeleton abnormal | Custom model texture applied and root head translation normalized; visual check pending |
 
 The previously generated Java and resource files are not patched in place. Regeneration from MCreator is required so the new templates are applied.
 
@@ -218,7 +218,7 @@ The previously generated Java and resource files are not patched in place. Regen
 
 A fixture containing the new block-inventory helpers, the entity NBT attachment helper, the finish-use event, the `Container`-based damage path and the custom armor head pose normalization was compiled with `javac` 25 against:
 
-- the Loom interface-injected Minecraft 26.1.2 jar from the `test-everrose` workspace;
+- the Loom interface-injected Minecraft 26.1.2 jar from a test workspace;
 - Fabric Loader 0.20.1;
 - the Fabric API 0.155.3 module jars;
 - the exact Mojang library versions from the 26.1.2 version manifest (`datafixerupper 9.0.19`, `fastutil 8.5.18`, `brigadier 1.3.10`, `authlib 7.0.63`, and related jars).
@@ -235,6 +235,10 @@ The source tree was audited for Windows drive paths, POSIX home paths and `file:
 - `plugin/src/main/resources/fabric-26.1.2-base/neoforge/workspacebase/gradle/wrapper/gradle-wrapper.properties`
 
 All four now use `https\://services.gradle.org/distributions/gradle-9.8.0-bin.zip`. The validator performs a repeatable scan over text source files and excludes `build/` and `.git/`; it reports zero local-path hits. The generated-project templates therefore contain no local absolute path.
+
+### 5.9 Documentation sanitization
+
+The changelog, migration report and feature report now use neutral test-workspace labels only. Private test-workspace names and private generated-class names were removed from the published documentation; validation references describe generic test workspaces instead.
 
 ## 6. Known limitations
 
@@ -262,7 +266,7 @@ All four now use `https\://services.gradle.org/distributions/gradle-9.8.0-bin.zi
 5. Launch the client and verify the block model, item model, creative tab (including `hideTitle` if selected), enchantment effects and the new procedure blocks.
 6. For a block entity workspace, verify that `Blocks.load()` and `BlockEntities.load()` are both generated and that the block entity registers.
 7. If a custom OBJ model or a global loot modifier is selected, expect the documented limitation rather than a successful build.
-8. Regenerate `test-better-melon` and confirm `HavingUsedEnchantedMelonSliceProcedure` is generated and the build succeeds.
-9. Regenerate `test-croparium-full` and confirm the `block_inv_*` and `entity_nbt_*` procedures compile without empty expressions.
-10. Regenerate `test-everrose` and confirm the armor inventory icons use `assets/<modid>/textures/item/<piece>.png` instead of the missing-texture placeholder. Re-run `test-croparium-lite` as the regression control.
-11. Regenerate `test-better-melon` and confirm the custom Java armor model uses `assets/<modid>/textures/entities/<helmetModelTexture>` and is positioned at the head. Full block models may still require minor manual placement because only the root translation is normalized.
+8. Regenerate Test workspace A and confirm the missing generated procedure class is emitted and the build succeeds.
+9. Regenerate Test workspace B and confirm the `block_inv_*` and `entity_nbt_*` procedures compile without empty expressions.
+10. Regenerate Test workspace D and confirm the armor inventory icons use `assets/<modid>/textures/item/<piece>.png` instead of the missing-texture placeholder. Re-run Test workspace C as the regression control.
+11. Regenerate Test workspace A and confirm the custom Java armor model uses `assets/<modid>/textures/entities/<helmetModelTexture>` and is positioned at the head. Full block models may still require minor manual placement because only the root translation is normalized.

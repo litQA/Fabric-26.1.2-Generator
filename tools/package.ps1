@@ -49,7 +49,36 @@ $zip = Join-Path $OutputDirectory "generator-fabric-26.1.2.zip"
 if (Test-Path $zip) {
     Remove-Item -LiteralPath $zip -Force
 }
-Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zip -CompressionLevel Optimal
+
+# Build entries explicitly so ZIP paths always use forward slashes, as required
+# by the ZIP specification and by MCreator's plugin loader.
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zipStream = [System.IO.File]::Open($zip, [System.IO.FileMode]::Create)
+try {
+    $archive = New-Object System.IO.Compression.ZipArchive($zipStream, [System.IO.Compression.ZipArchiveMode]::Create)
+    try {
+        foreach ($file in Get-ChildItem -LiteralPath $stage -Recurse -File) {
+            $relative = $file.FullName.Substring($stage.Length).TrimStart([char[]]@('\', '/')).Replace('\', '/')
+            $entry = $archive.CreateEntry($relative, [System.IO.Compression.CompressionLevel]::Optimal)
+            $entryStream = $entry.Open()
+            try {
+                $input = [System.IO.File]::OpenRead($file.FullName)
+                try {
+                    $input.CopyTo($entryStream)
+                } finally {
+                    $input.Dispose()
+                }
+            } finally {
+                $entryStream.Dispose()
+            }
+        }
+    } finally {
+        $archive.Dispose()
+    }
+} finally {
+    $zipStream.Dispose()
+}
 
 $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
 $size = (Get-Item -LiteralPath $zip).Length

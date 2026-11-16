@@ -227,7 +227,7 @@ $equipmentMixin = Get-Content -LiteralPath (Join-Path $fabric "templates\armor\e
 Check ($equipmentMixin -match 'getArmorTexture') "equipment layer mixin applies the custom armor model texture"
 
 $gradleProperties = Get-Content -LiteralPath (Join-Path $pluginRoot "gradle.properties") -Raw
-Check ($gradleProperties -match 'pluginVersion=2026\.3-1\.0\.3\.1-beta') "plugin version is 2026.3-1.0.3.1-beta"
+Check ($gradleProperties -match 'pluginVersion=2026\.3-1\.0\.4\.3-beta') "plugin version is 2026.3-1.0.4.3-beta"
 $readme = Get-Content -LiteralPath (Join-Path $pluginRoot "README.md") -Raw
 Check ($readme -match 'https://github\.com/user-attachments/assets/a210a188-8b5a-4e03-97b4-1754d6b0e59d') "README keeps the standard banner image link"
 Check ($readme -match '# MCreator - Minecraft Mod Maker') "README keeps the MCreator footer heading"
